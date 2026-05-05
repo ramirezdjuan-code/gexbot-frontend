@@ -2,901 +2,272 @@
 
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GexBot Platform</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
   <style>
-    :root {
-      --bg: #060a12;
-      --bg2: #0d1422;
-      --bg3: #111927;
-      --border: #1e2d45;
-      --accent-green: #00ff88;
-      --accent-yellow: #ffd700;
-      --accent-red: #ff4466;
-      --accent-blue: #00aaff;
-      --accent-purple: #aa66ff;
-      --text: #c8d8e8;
-      --text-dim: #5a7a9a;
-      --card-bg: rgba(13, 20, 34, 0.9);
-    }
+    :root{--bg:#060a12;--bg2:#0d1422;--border:#1e2d45;--green:#00ff88;--yellow:#ffd700;--red:#ff4466;--blue:#00aaff;--purple:#aa66ff;--text:#c8d8e8;--dim:#5a7a9a;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
 
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* LOGIN */
+#login{position:fixed;inset:0;background:radial-gradient(ellipse at center,#0d1a2e,#060a12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;z-index:999;}
+#login h1{font-family:'Orbitron',monospace;font-size:3rem;font-weight:900;color:var(--green);letter-spacing:0.3em;text-shadow:0 0 30px rgba(0,255,136,0.5);animation:glow 2s ease-in-out infinite;}
+#login h1 span{color:var(--yellow);}
+@keyframes glow{0%,100%{text-shadow:0 0 20px rgba(0,255,136,0.4);}50%{text-shadow:0 0 50px rgba(0,255,136,0.8),0 0 100px rgba(0,255,136,0.3);}}
+#login .sub{color:var(--dim);font-size:0.75rem;letter-spacing:0.2em;}
+#login .by{color:#3a5a7a;font-size:0.65rem;letter-spacing:0.15em;}
+#enter-btn{background:transparent;border:1px solid var(--green);color:var(--green);font-family:'Share Tech Mono',monospace;font-size:0.85rem;padding:0.8rem 3rem;cursor:pointer;letter-spacing:0.25em;transition:all 0.3s;margin-top:0.5rem;}
+#enter-btn:hover{background:rgba(0,255,136,0.12);box-shadow:0 0 20px rgba(0,255,136,0.3);}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Share Tech Mono', monospace;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+/* DASHBOARD */
+#app{display:none;}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0.6rem 1.2rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:100;flex-wrap:wrap;}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:1.1rem;color:var(--green);letter-spacing:0.15em;text-shadow:0 0 15px rgba(0,255,136,0.4);}
+.logo span{color:var(--yellow);}
+#dot{width:8px;height:8px;border-radius:50%;background:var(--yellow);flex-shrink:0;}
+#dot.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+#stxt{font-size:0.7rem;color:var(--dim);}
+.tabs{display:flex;gap:0.3rem;margin-left:auto;}
+.tab{background:transparent;border:1px solid var(--border);color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:0.75rem;padding:0.3rem 0.7rem;cursor:pointer;transition:all 0.2s;}
+.tab.active{border-color:var(--green);color:var(--green);background:rgba(0,255,136,0.08);}
+#ucnt{font-size:0.7rem;color:var(--dim);}
 
-/* ─── SCANLINE OVERLAY ─── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.03) 2px,
-    rgba(0,0,0,0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
+.main{padding:1rem;display:flex;flex-direction:column;gap:1rem;max-width:1600px;margin:0 auto;}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:0.6rem;}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.cards{grid-template-columns:repeat(2,1fr);}}
+.card{background:rgba(13,20,34,0.9);border:1px solid var(--border);padding:0.8rem 1rem;position:relative;overflow:hidden;transition:border-color 0.3s;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--cc,var(--blue));}
+.card:hover{border-color:var(--cc,var(--blue));}
+.clbl{font-size:0.6rem;color:var(--dim);letter-spacing:0.15em;margin-bottom:0.4rem;}
+.cval{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--cc,var(--blue));min-height:1.4rem;}
+.csub{font-size:0.6rem;color:var(--dim);margin-top:0.3rem;}
 
-/* ════════════════════════════
-   AUTH GATE
-════════════════════════════ */
-#auth-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: radial-gradient(ellipse at center, #0d1a2e 0%, #060a12 70%);
-  gap: 2rem;
-}
-
-.auth-logo {
-  text-align: center;
-}
-
-.auth-logo h1 {
-  font-family: 'Orbitron', monospace;
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: var(--accent-green);
-  letter-spacing: 0.3em;
-  text-shadow: 0 0 30px rgba(0,255,136,0.5);
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-.auth-logo p {
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  letter-spacing: 0.2em;
-  margin-top: 0.4rem;
-}
-
-@keyframes pulse-glow {
-  0%, 100% { text-shadow: 0 0 20px rgba(0,255,136,0.4); }
-  50% { text-shadow: 0 0 50px rgba(0,255,136,0.8), 0 0 100px rgba(0,255,136,0.3); }
-}
-
-#sign-in {
-  --clerk-border-radius: 4px;
-}
-
-.login-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  width: 280px;
-}
-
-.login-label {
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.8rem;
-  margin-bottom: 0.2rem;
-}
-
-.pwd-input {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 1rem;
-  padding: 0.7rem 1rem;
-  letter-spacing: 0.3em;
-  text-align: center;
-  outline: none;
-  transition: border-color 0.2s;
-  width: 100%;
-}
-.pwd-input:focus { border-color: var(--accent-green); }
-.pwd-input::placeholder { letter-spacing: 0.1em; color: var(--text-dim); }
-
-.pwd-btn {
-  background: transparent;
-  border: 1px solid var(--accent-green);
-  color: var(--accent-green);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.8rem;
-  padding: 0.7rem;
-  cursor: pointer;
-  letter-spacing: 0.2em;
-  transition: all 0.2s;
-}
-.pwd-btn:hover { background: rgba(0,255,136,0.1); }
-
-.pwd-error {
-  font-size: 0.65rem;
-  color: var(--accent-red);
-  text-align: center;
-  letter-spacing: 0.1em;
-  min-height: 1rem;
-}
-
-/* ════════════════════════════
-   DASHBOARD
-════════════════════════════ */
-#dashboard { display: none; }
-
-/* ─── HEADER ─── */
-header {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  padding: 0.6rem 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.logo {
-  font-family: 'Orbitron', monospace;
-  font-weight: 900;
-  font-size: 1.1rem;
-  color: var(--accent-green);
-  letter-spacing: 0.15em;
-  text-shadow: 0 0 15px rgba(0,255,136,0.5);
-  white-space: nowrap;
-}
-
-.logo span { color: var(--accent-yellow); }
-
-#status-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--accent-yellow);
-  flex-shrink: 0;
-}
-#status-dot.connected { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); animation: blink 2s infinite; }
-#status-dot.error { background: var(--accent-red); }
-
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-#status-text {
-  font-size: 0.7rem;
-  color: var(--text-dim);
-  letter-spacing: 0.1em;
-}
-
-/* Symbol tabs */
-.symbol-tabs {
-  display: flex;
-  gap: 0.3rem;
-  margin-left: auto;
-}
-
-.sym-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.75rem;
-  padding: 0.3rem 0.7rem;
-  cursor: pointer;
-  letter-spacing: 0.1em;
-  transition: all 0.2s;
-}
-.sym-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
-.sym-btn.active { border-color: var(--accent-green); color: var(--accent-green); background: rgba(0,255,136,0.08); }
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-#user-count {
-  font-size: 0.7rem;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
-#btn-signout {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem;
-  padding: 0.25rem 0.6rem;
-  cursor: pointer;
-  letter-spacing: 0.1em;
-  transition: all 0.2s;
-}
-#btn-signout:hover { border-color: var(--accent-red); color: var(--accent-red); }
-
-/* ─── MAIN LAYOUT ─── */
-.main {
-  padding: 1rem;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 1rem;
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-/* ─── METRIC CARDS ─── */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.6rem;
-}
-
-@media (max-width: 1200px) { .cards { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 700px)  { .cards { grid-template-columns: repeat(2, 1fr); } }
-
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  padding: 0.8rem 1rem;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.3s;
-}
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--card-color, var(--accent-blue));
-}
-.card:hover { border-color: var(--card-color, var(--accent-blue)); }
-
-.card-label {
-  font-size: 0.6rem;
-  color: var(--text-dim);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-bottom: 0.4rem;
-}
-
-.card-value {
-  font-family: 'Orbitron', monospace;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--card-color, var(--accent-blue));
-  letter-spacing: 0.05em;
-  min-height: 1.5rem;
-}
-
-.card-sub {
-  font-size: 0.6rem;
-  color: var(--text-dim);
-  margin-top: 0.3rem;
-  letter-spacing: 0.05em;
-}
-
-.card-zero  { --card-color: var(--accent-yellow); }
-.card-call  { --card-color: var(--accent-green); }
-.card-put   { --card-color: var(--accent-red); }
-.card-net   { --card-color: var(--accent-blue); }
-.card-vol   { --card-color: var(--accent-purple); }
-.card-max   { --card-color: #ff8800; }
-
-/* ─── BOTTOM SECTION ─── */
-.bottom {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 0.8rem;
-}
-
-@media (max-width: 900px) { .bottom { grid-template-columns: 1fr; } }
-
-/* ─── CHART ─── */
-.chart-container {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  padding: 1rem;
-  position: relative;
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.8rem;
-}
-
-.chart-title {
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.legend {
-  display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-}
-
-.leg-item {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.6rem;
-  color: var(--text-dim);
-}
-
-.leg-dot { width: 8px; height: 2px; border-radius: 1px; }
-
-canvas#gexChart { max-height: 300px; }
-
-/* ─── SIDE PANEL ─── */
-.side-panel { display: flex; flex-direction: column; gap: 0.6rem; }
-
-.panel-box {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  padding: 0.8rem 1rem;
-}
-
-.panel-title {
-  font-size: 0.6rem;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 0.6rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.4rem;
-}
-
-.nivel-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.72rem;
-  padding: 0.25rem 0;
-  border-bottom: 1px solid rgba(30,45,69,0.5);
-}
-.nivel-row:last-child { border-bottom: none; }
-.nivel-label { color: var(--text-dim); }
-.nivel-val { font-weight: bold; }
-
-.interp-text {
-  font-size: 0.68rem;
-  line-height: 1.6;
-  color: var(--text);
-}
-
-.status-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.65rem;
-  padding: 0.2rem 0;
-  color: var(--text-dim);
-}
-.status-ok { color: var(--accent-green); }
-.status-warn { color: var(--accent-yellow); }
-.status-err { color: var(--accent-red); }
-
-/* ─── LOADING STATE ─── */
-.loading {
-  animation: loading-pulse 1.5s ease-in-out infinite;
-}
-@keyframes loading-pulse {
-  0%,100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-/* ─── TICKER ─── */
-.ticker-bar {
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  padding: 0.3rem 1rem;
-  font-size: 0.6rem;
-  color: var(--text-dim);
-  overflow: hidden;
-  white-space: nowrap;
-}
-.ticker-inner { display: inline-block; animation: scroll-ticker 40s linear infinite; }
-@keyframes scroll-ticker { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
+.bottom{display:grid;grid-template-columns:1fr 260px;gap:0.8rem;}
+@media(max-width:900px){.bottom{grid-template-columns:1fr;}}
+.chart-box{background:rgba(13,20,34,0.9);border:1px solid var(--border);padding:1rem;}
+.chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem;}
+.chart-ttl{font-size:0.6rem;color:var(--dim);letter-spacing:0.15em;}
+.legend{display:flex;gap:0.8rem;}
+.li{display:flex;align-items:center;gap:0.3rem;font-size:0.6rem;color:var(--dim);}
+.ld{width:10px;height:2px;border-radius:1px;}
+.side{display:flex;flex-direction:column;gap:0.6rem;}
+.panel{background:rgba(13,20,34,0.9);border:1px solid var(--border);padding:0.8rem 1rem;}
+.ptit{font-size:0.6rem;color:var(--dim);letter-spacing:0.2em;border-bottom:1px solid var(--border);padding-bottom:0.4rem;margin-bottom:0.6rem;}
+.nrow{display:flex;justify-content:space-between;font-size:0.72rem;padding:0.25rem 0;border-bottom:1px solid rgba(30,45,69,0.4);}
+.nrow:last-child{border:none;}
+.nlbl{color:var(--dim);}
+.interp{font-size:0.68rem;line-height:1.6;}
+.srow{display:flex;justify-content:space-between;font-size:0.65rem;padding:0.2rem 0;color:var(--dim);}
+.ok{color:var(--green);} .warn{color:var(--yellow);} .err{color:var(--red);}
 
 
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════
-     AUTH GATE
-═══════════════════════════════ -->
+<!-- LOGIN -->
 
-<div id="auth-container">
-  <div class="auth-logo">
-    <h1>GEX<span style="color:#ffd700">BOT</span></h1>
-    <p>GAMMA EXPOSURE ANALYTICS PLATFORM</p>
-    <p style="color:#3a5a7a;font-size:0.65rem;letter-spacing:0.15em;margin-top:0.3rem;">By Galactic Traders</p>
-  </div>
-  <div id="sign-in">
-    <div class="login-box">
-      <div class="login-label">ACCESO RESTRINGIDO</div>
-      <input type="password" id="pwd-input" class="pwd-input" placeholder="Contraseña" autocomplete="current-password" />
-      <div id="pwd-error" class="pwd-error"></div>
-      <button class="pwd-btn" id="pwd-btn">INGRESAR →</button>
-    </div>
-  </div>
+<div id="login">
+  <h1>GEX<span>BOT</span></h1>
+  <p class="sub">GAMMA EXPOSURE ANALYTICS PLATFORM</p>
+  <p class="by">By Galactic Traders</p>
+  <button id="enter-btn">INGRESAR →</button>
 </div>
 
-<!-- ═══════════════════════════════
-     DASHBOARD
-═══════════════════════════════ -->
+<!-- DASHBOARD -->
 
-<div id="dashboard">
-
+<div id="app">
   <header>
     <div class="logo">GEX<span>BOT</span></div>
-    <div id="status-dot"></div>
-    <div id="status-text">CONECTANDO...</div>
-
-
-<div class="symbol-tabs">
-  <button class="sym-btn active" data-sym="SPY">SPY</button>
-  <button class="sym-btn" data-sym="QQQ">QQQ</button>
-  <button class="sym-btn" data-sym="SPX">SPX</button>
-</div>
-
-<div class="header-right">
-  <div id="user-count">— usuarios</div>
-  <button id="btn-signout">SALIR</button>
-</div>
-
-
+    <div id="dot"></div>
+    <div id="stxt">CONECTANDO...</div>
+    <div class="tabs">
+      <button class="tab active" data-sym="SPY">SPY</button>
+      <button class="tab" data-sym="QQQ">QQQ</button>
+      <button class="tab" data-sym="SPX">SPX</button>
+    </div>
+    <div id="ucnt">— usuarios</div>
   </header>
 
   <div class="main">
+    <div class="cards">
+      <div class="card" style="--cc:var(--yellow)"><div class="clbl">ZERO GAMMA</div><div class="cval" id="v0">—</div><div class="csub">Punto de pivote</div></div>
+      <div class="card" style="--cc:var(--green)"><div class="clbl">CALL WALL</div><div class="cval" id="vc">—</div><div class="csub">Resistencia principal</div></div>
+      <div class="card" style="--cc:var(--red)"><div class="clbl">PUT WALL</div><div class="cval" id="vp">—</div><div class="csub">Soporte principal</div></div>
+      <div class="card" style="--cc:var(--blue)"><div class="clbl">NET GEX</div><div class="cval" id="vn">—</div><div class="csub" id="vnsub">—</div></div>
+      <div class="card" style="--cc:var(--purple)"><div class="clbl">GEX VOLUME</div><div class="cval" id="vv">—</div><div class="csub">Flujo intradiario</div></div>
+      <div class="card" style="--cc:#ff8800"><div class="clbl">MAX GAMMA</div><div class="cval" id="vm">—</div><div class="csub">Strike mayor cambio</div></div>
+    </div>
 
 
-<!-- CARDS -->
-<div class="cards">
-  <div class="card card-zero">
-    <div class="card-label">Zero Gamma</div>
-    <div class="card-value loading" id="val-zero">—</div>
-    <div class="card-sub">Punto de pivote</div>
-  </div>
-  <div class="card card-call">
-    <div class="card-label">Call Wall</div>
-    <div class="card-value loading" id="val-call">—</div>
-    <div class="card-sub">Resistencia principal</div>
-  </div>
-  <div class="card card-put">
-    <div class="card-label">Put Wall</div>
-    <div class="card-value loading" id="val-put">—</div>
-    <div class="card-sub">Soporte principal</div>
-  </div>
-  <div class="card card-net">
-    <div class="card-label">Net GEX</div>
-    <div class="card-value loading" id="val-net">—</div>
-    <div class="card-sub" id="sub-net">—</div>
-  </div>
-  <div class="card card-vol">
-    <div class="card-label">GEX Volume</div>
-    <div class="card-value loading" id="val-vol">—</div>
-    <div class="card-sub">Flujo intradiario</div>
-  </div>
-  <div class="card card-max">
-    <div class="card-label">Max Gamma</div>
-    <div class="card-value loading" id="val-max">—</div>
-    <div class="card-sub">Strike de mayor cambio</div>
-  </div>
-</div>
-
-<!-- BOTTOM -->
 <div class="bottom">
-
-  <!-- CHART -->
-  <div class="chart-container">
-    <div class="chart-header">
-      <div class="chart-title">GAMMA EXPOSURE — DISTRIBUCIÓN POR STRIKE</div>
+  <div class="chart-box">
+    <div class="chart-hdr">
+      <div class="chart-ttl">GAMMA EXPOSURE — DISTRIBUCIÓN POR STRIKE</div>
       <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:#00ff88"></div> Call GEX</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#ff4466"></div> Put GEX</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#ffd700;width:1px;height:12px;border-radius:0"></div> Zero Gamma</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#00aaff;width:1px;height:12px;border-radius:0"></div> Call Wall</div>
+        <div class="li"><div class="ld" style="background:var(--green)"></div>Call GEX</div>
+        <div class="li"><div class="ld" style="background:var(--red)"></div>Put GEX</div>
       </div>
     </div>
-    <canvas id="gexChart"></canvas>
+    <canvas id="gexChart" style="max-height:280px;"></canvas>
   </div>
-
-  <!-- SIDE PANEL -->
-  <div class="side-panel">
-
-    <div class="panel-box">
-      <div class="panel-title">Niveles Clave</div>
-      <div class="nivel-row">
-        <span class="nivel-label">Call Wall</span>
-        <span class="nivel-val" id="niv-call" style="color:var(--accent-green)">—</span>
-      </div>
-      <div class="nivel-row">
-        <span class="nivel-label">Put Wall</span>
-        <span class="nivel-val" id="niv-put" style="color:var(--accent-red)">—</span>
-      </div>
-      <div class="nivel-row">
-        <span class="nivel-label">Zero Gamma</span>
-        <span class="nivel-val" id="niv-zero" style="color:var(--accent-yellow)">—</span>
-      </div>
-      <div class="nivel-row">
-        <span class="nivel-label">Max Gamma</span>
-        <span class="nivel-val" id="niv-max" style="color:#ff8800">—</span>
-      </div>
+  <div class="side">
+    <div class="panel">
+      <div class="ptit">NIVELES CLAVE</div>
+      <div class="nrow"><span class="nlbl">Call Wall</span><span id="n-call" style="color:var(--green)">—</span></div>
+      <div class="nrow"><span class="nlbl">Put Wall</span><span id="n-put" style="color:var(--red)">—</span></div>
+      <div class="nrow"><span class="nlbl">Zero Gamma</span><span id="n-zero" style="color:var(--yellow)">—</span></div>
+      <div class="nrow"><span class="nlbl">Max Gamma</span><span id="n-max" style="color:#ff8800">—</span></div>
     </div>
-
-    <div class="panel-box">
-      <div class="panel-title">Interpretación</div>
-      <div class="interp-text" id="interpretacion">
-        Esperando datos del mercado...
-      </div>
+    <div class="panel">
+      <div class="ptit">INTERPRETACIÓN</div>
+      <div class="interp" id="interp">Esperando datos...</div>
     </div>
-
-    <div class="panel-box">
-      <div class="panel-title">Estado del Sistema</div>
-      <div class="status-row">
-        <span>Backend</span>
-        <span id="st-backend" class="status-warn">CONECTANDO</span>
-      </div>
-      <div class="status-row">
-        <span>Schwab API</span>
-        <span id="st-schwab" class="status-warn">—</span>
-      </div>
-      <div class="status-row">
-        <span>WebSocket</span>
-        <span id="st-ws" class="status-warn">—</span>
-      </div>
-      <div class="status-row">
-        <span>Última actualiz.</span>
-        <span id="st-update" style="color:var(--text-dim)">—</span>
-      </div>
+    <div class="panel">
+      <div class="ptit">ESTADO DEL SISTEMA</div>
+      <div class="srow"><span>Backend</span><span id="s-back" class="warn">CONECTANDO</span></div>
+      <div class="srow"><span>WebSocket</span><span id="s-ws" class="warn">—</span></div>
+      <div class="srow"><span>Última actua.</span><span id="s-time" style="color:var(--dim)">—</span></div>
     </div>
-
   </div>
 </div>
 
 
   </div>
-
-  <div class="ticker-bar">
-    <span class="ticker-inner" id="ticker-text">
-      GEXBOT PLATFORM &nbsp;|&nbsp; GAMMA EXPOSURE ANALYTICS &nbsp;|&nbsp; SCHWAB MARKET DATA &nbsp;|&nbsp; REAL-TIME OPTIONS FLOW &nbsp;|&nbsp;
-    </span>
-  </div>
-
 </div>
 
 <script>
-  const BACKEND_URL = 'https://gexbot-backend.onrender.com';
-  const CLERK_KEY   = 'pk_test_ZGVjZW50LWxlZWNoLTU3LmNsZXJrLmFjY291bnRzLmRldiQ';
+var BACKEND = 'https://gexbot-backend.onrender.com';
+var ws = null;
+var sym = 'SPY';
+var gexChart = null;
+var data = {};
 
-  let ws = null;
-  let currentSymbol = 'SPY';
-  let gexChart = null;
-  let latestData = {};
+// ENTER BUTTON
+document.getElementById('enter-btn').onclick = function() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initChart();
+  connectWS();
+  initTabs();
+};
 
-  const ACCESS_PASSWORD = '1234';
-
-  /* ════════════════════
-     PASSWORD AUTH
-  ════════════════════ */
-  function checkPassword() {
-    const input = document.getElementById('pwd-input').value;
-    if (input === ACCESS_PASSWORD) {
-      sessionStorage.setItem('gexbot_auth', '1');
-      startDashboard();
-    } else {
-      document.getElementById('pwd-error').textContent = 'CONTRASEÑA INCORRECTA';
-      document.getElementById('pwd-input').value = '';
-      document.getElementById('pwd-input').focus();
-    }
-  }
-
-  // Enter key support
-  document.getElementById('pwd-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') checkPassword();
+// TABS
+function initTabs() {
+  document.querySelectorAll('.tab').forEach(function(btn) {
+    btn.onclick = function() {
+      document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      sym = btn.dataset.sym;
+      render(sym);
+    };
   });
+}
 
-  // Button click
-  document.getElementById('pwd-btn').addEventListener('click', checkPassword);
-
-  // Sign out
-  document.getElementById('btn-signout').addEventListener('click', () => {
-    if (ws) ws.close();
-    sessionStorage.removeItem('gexbot_auth');
-    location.reload();
-  });
-
-  // Auto-login if already authenticated
-  if (sessionStorage.getItem('gexbot_auth') === '1') {
-    startDashboard();
-  }
-
-  /* ════════════════════
-     DASHBOARD INIT
-  ════════════════════ */
-  function startDashboard() {
-    document.getElementById('auth-container').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    try { initChart(); } catch(e) { console.warn('Chart no disponible:', e); }
-    connectWebSocket();
-    setupSymbolTabs();
-  }
-
-  /* ════════════════════
-     SYMBOL TABS
-  ════════════════════ */
-  function setupSymbolTabs() {
-    document.querySelectorAll('.sym-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.sym-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentSymbol = btn.dataset.sym;
-        renderSymbolData(currentSymbol);
-      });
-    });
-  }
-
-  /* ════════════════════
-     WEBSOCKET
-  ════════════════════ */
-  function connectWebSocket() {
-    const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
-    ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      setStatus('connected');
-      document.getElementById('st-ws').textContent = 'ACTIVO';
-      document.getElementById('st-ws').className = 'status-ok';
-      document.getElementById('st-backend').textContent = 'ONLINE';
-      document.getElementById('st-backend').className = 'status-ok';
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-
-        if (msg.type === 'gex_update' || msg.data) {
-          const payload = msg.data || msg;
-          // Store by symbol
-          if (payload.symbol) {
-            latestData[payload.symbol] = payload;
-          } else {
-            // If backend sends all symbols at once
-            Object.assign(latestData, payload);
-          }
-          renderSymbolData(currentSymbol);
-          updateTicker();
-        }
-
-        if (msg.users !== undefined) {
-          document.getElementById('user-count').textContent = msg.users + ' usuario' + (msg.users !== 1 ? 's' : '');
-        }
-
-        if (msg.schwab_status) {
-          document.getElementById('st-schwab').textContent = msg.schwab_status === 'ok' ? 'ACTIVO' : 'ERROR';
-          document.getElementById('st-schwab').className = msg.schwab_status === 'ok' ? 'status-ok' : 'status-err';
-        }
-
-      } catch (e) { console.error('Parse error:', e); }
-    };
-
-    ws.onerror = () => { setStatus('error'); };
-    ws.onclose = () => {
-      setStatus('disconnected');
-      document.getElementById('st-ws').textContent = 'CERRADO';
-      document.getElementById('st-ws').className = 'status-err';
-      setTimeout(connectWebSocket, 5000);
-    };
-  }
-
-  function setStatus(state) {
-    const dot  = document.getElementById('status-dot');
-    const text = document.getElementById('status-text');
-    dot.className = '';
-    if (state === 'connected') {
-      dot.classList.add('connected');
-      text.textContent = 'CONECTADO';
-    } else if (state === 'error') {
-      dot.classList.add('error');
-      text.textContent = 'ERROR';
-    } else {
-      text.textContent = 'RECONECTANDO...';
-    }
-  }
-
-  /* ════════════════════
-     RENDER DATA
-  ════════════════════ */
-  function renderSymbolData(symbol) {
-    const d = latestData[symbol];
-    if (!d) return;
-
-    const fmt = v => v != null ? Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '—';
-    const fmtB = v => {
-      if (v == null) return '—';
-      const abs = Math.abs(v);
-      if (abs >= 1e9) return (v / 1e9).toFixed(2) + 'B';
-      if (abs >= 1e6) return (v / 1e6).toFixed(2) + 'M';
-      return v.toFixed(2);
-    };
-
-    setText('val-zero', fmt(d.zero_gamma ?? d.zeroGamma));
-    setText('val-call', fmt(d.call_wall  ?? d.callWall));
-    setText('val-put',  fmt(d.put_wall   ?? d.putWall));
-    setText('val-net',  fmtB(d.net_gex   ?? d.netGex));
-    setText('val-vol',  fmtB(d.gex_volume ?? d.gexVolume));
-    setText('val-max',  fmt(d.max_gamma  ?? d.maxGamma));
-
-    // Side panel
-    setText('niv-call', fmt(d.call_wall ?? d.callWall));
-    setText('niv-put',  fmt(d.put_wall  ?? d.putWall));
-    setText('niv-zero', fmt(d.zero_gamma ?? d.zeroGamma));
-    setText('niv-max',  fmt(d.max_gamma ?? d.maxGamma));
-
-    // Net GEX subtitle
-    const net = d.net_gex ?? d.netGex;
-    if (net != null) {
-      document.getElementById('sub-net').textContent = net > 0 ? 'Mercado positivo' : 'Mercado negativo';
-      document.getElementById('val-net').style.color = net > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-    }
-
-    // Interpretation
-    buildInterpretation(d);
-
-    // Schwab status
-    if (d.schwab_connected !== undefined) {
-      document.getElementById('st-schwab').textContent = d.schwab_connected ? 'ACTIVO' : 'OFFLINE';
-      document.getElementById('st-schwab').className   = d.schwab_connected ? 'status-ok' : 'status-err';
-    }
-
-    // Timestamp
-    const now = new Date();
-    document.getElementById('st-update').textContent = now.toLocaleTimeString('es-CO');
-
-    // Remove loading animation
-    document.querySelectorAll('.loading').forEach(el => el.classList.remove('loading'));
-
-    // Update chart
-    if (d.strikes && d.call_gex_by_strike && d.put_gex_by_strike) {
-      updateChart(d);
-    }
-  }
-
-  function setText(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  }
-
-  function buildInterpretation(d) {
-    const net = d.net_gex ?? d.netGex;
-    const zero = d.zero_gamma ?? d.zeroGamma;
-    const call = d.call_wall ?? d.callWall;
-    const put  = d.put_wall  ?? d.putWall;
-    let text = '';
-
-    if (net != null) {
-      text += net > 0
-        ? '📈 GEX positivo: dealers compran bajas, mercado tiende a ser estable. '
-        : '📉 GEX negativo: dealers venden bajas, mercado puede ser volátil. ';
-    }
-    if (zero && call && put) {
-      text += `Rango clave: ${Number(put).toFixed(0)} — ${Number(call).toFixed(0)}. `;
-      text += Pivote en ${Number(zero).toFixed(0)}.;
-    }
-
-    document.getElementById('interpretacion').textContent = text || 'Analizando flujo de opciones...';
-  }
-
-  function updateTicker() {
-    const parts = Object.entries(latestData).map(([sym, d]) => {
-      const zg = d.zero_gamma ?? d.zeroGamma;
-      return ${sym}: ZG ${zg ? Number(zg).toFixed(0) : '—'};
-    });
-    if (parts.length) {
-      document.getElementById('ticker-text').textContent =
-        parts.join('  |  ') + '  ‖  GEXBOT PLATFORM  ‖  REAL-TIME OPTIONS GEX  ‖  ';
-    }
-  }
-
-  /* ════════════════════
-     CHART
-  ════════════════════ */
-  function initChart() {
-    const ctx = document.getElementById('gexChart').getContext('2d');
-    gexChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Call GEX',
-            data: [],
-            backgroundColor: 'rgba(0,255,136,0.5)',
-            borderColor: '#00ff88',
-            borderWidth: 1,
-          },
-          {
-            label: 'Put GEX',
-            data: [],
-            backgroundColor: 'rgba(255,68,102,0.5)',
-            borderColor: '#ff4466',
-            borderWidth: 1,
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        animation: { duration: 300 },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0d1422',
-            borderColor: '#1e2d45',
-            borderWidth: 1,
-            titleColor: '#c8d8e8',
-            bodyColor: '#5a7a9a',
-            titleFont: { family: 'Share Tech Mono', size: 11 },
-            bodyFont: { family: 'Share Tech Mono', size: 10 },
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: '#5a7a9a', font: { family: 'Share Tech Mono', size: 9 }, maxRotation: 0 },
-            grid: { color: 'rgba(30,45,69,0.4)' }
-          },
-          y: {
-            ticks: { color: '#5a7a9a', font: { family: 'Share Tech Mono', size: 9 } },
-            grid: { color: 'rgba(30,45,69,0.4)' }
-          }
-        }
+// CHART
+function initChart() {
+  var ctx = document.getElementById('gexChart').getContext('2d');
+  gexChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:[], datasets:[
+      { label:'Call GEX', data:[], backgroundColor:'rgba(0,255,136,0.5)', borderColor:'#00ff88', borderWidth:1 },
+      { label:'Put GEX',  data:[], backgroundColor:'rgba(255,68,102,0.5)', borderColor:'#ff4466', borderWidth:1 }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:true, animation:{ duration:300 },
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:'#5a7a9a', font:{ family:'Share Tech Mono', size:9 }, maxRotation:0 }, grid:{ color:'rgba(30,45,69,0.4)' } },
+        y:{ ticks:{ color:'#5a7a9a', font:{ family:'Share Tech Mono', size:9 } }, grid:{ color:'rgba(30,45,69,0.4)' } }
       }
-    });
+    }
+  });
+}
+
+// WEBSOCKET
+function connectWS() {
+  var url = BACKEND.replace('https://','wss://').replace('http://','ws://');
+  ws = new WebSocket(url);
+  ws.onopen = function() {
+    document.getElementById('dot').className = 'on';
+    document.getElementById('stxt').textContent = 'CONECTADO';
+    document.getElementById('s-ws').textContent = 'ACTIVO'; document.getElementById('s-ws').className = 'ok';
+    document.getElementById('s-back').textContent = 'ONLINE'; document.getElementById('s-back').className = 'ok';
+  };
+  ws.onmessage = function(e) {
+    try {
+      var msg = JSON.parse(e.data);
+      var payload = msg.data || msg;
+      if (payload.symbol) { data[payload.symbol] = payload; }
+      else { Object.assign(data, payload); }
+      if (msg.users !== undefined) {
+        document.getElementById('ucnt').textContent = msg.users + ' usuario' + (msg.users !== 1 ? 's' : '');
+      }
+      render(sym);
+    } catch(err) {}
+  };
+  ws.onclose = function() {
+    document.getElementById('dot').className = '';
+    document.getElementById('stxt').textContent = 'RECONECTANDO...';
+    setTimeout(connectWS, 5000);
+  };
+}
+
+// RENDER
+function fmt(v) { return v != null ? Number(v).toLocaleString('en-US',{maximumFractionDigits:2}) : '—'; }
+function fmtB(v) {
+  if (v == null) return '—';
+  var a = Math.abs(v);
+  if (a >= 1e9) return (v/1e9).toFixed(2)+'B';
+  if (a >= 1e6) return (v/1e6).toFixed(2)+'M';
+  return Number(v).toFixed(2);
+}
+
+function render(s) {
+  var d = data[s]; if (!d) return;
+  var zg = d.zero_gamma  ?? d.zeroGamma;
+  var cw = d.call_wall   ?? d.callWall;
+  var pw = d.put_wall    ?? d.putWall;
+  var ng = d.net_gex     ?? d.netGex;
+  var gv = d.gex_volume  ?? d.gexVolume;
+  var mg = d.max_gamma   ?? d.maxGamma;
+
+  document.getElementById('v0').textContent = fmt(zg);
+  document.getElementById('vc').textContent = fmt(cw);
+  document.getElementById('vp').textContent = fmt(pw);
+  document.getElementById('vn').textContent = fmtB(ng);
+  document.getElementById('vv').textContent = fmtB(gv);
+  document.getElementById('vm').textContent = fmt(mg);
+  document.getElementById('n-call').textContent = fmt(cw);
+  document.getElementById('n-put').textContent  = fmt(pw);
+  document.getElementById('n-zero').textContent = fmt(zg);
+  document.getElementById('n-max').textContent  = fmt(mg);
+
+  if (ng != null) {
+    document.getElementById('vnsub').textContent = ng > 0 ? 'Mercado positivo' : 'Mercado negativo';
+    document.getElementById('vn').style.color = ng > 0 ? 'var(--green)' : 'var(--red)';
   }
 
-  function updateChart(d) {
-    if (!gexChart) return;
-    const strikes   = d.strikes || [];
-    const callData  = d.call_gex_by_strike || d.callGexByStrike || [];
-    const putData   = d.put_gex_by_strike  || d.putGexByStrike  || [];
+  var txt = '';
+  if (ng != null) txt += ng > 0 ? '📈 GEX positivo: mercado estable. ' : '📉 GEX negativo: mayor volatilidad. ';
+  if (zg && cw && pw) txt += 'Rango: ' + Number(pw).toFixed(0) + ' — ' + Number(cw).toFixed(0) + '. Pivote: ' + Number(zg).toFixed(0) + '.';
+  document.getElementById('interp').textContent = txt || 'Analizando...';
+  document.getElementById('s-time').textContent = new Date().toLocaleTimeString('es-CO');
 
-    gexChart.data.labels         = strikes.map(s => s.toString());
-    gexChart.data.datasets[0].data = callData;
-    gexChart.data.datasets[1].data = putData;
-
-    // Annotation lines for zero gamma / call wall
+  if (d.strikes && (d.call_gex_by_strike || d.callGexByStrike) && gexChart) {
+    gexChart.data.labels = d.strikes.map(String);
+    gexChart.data.datasets[0].data = d.call_gex_by_strike || d.callGexByStrike;
+    gexChart.data.datasets[1].data = d.put_gex_by_strike  || d.putGexByStrike;
     gexChart.update();
   }
+}
 </script>
 
 </body>
