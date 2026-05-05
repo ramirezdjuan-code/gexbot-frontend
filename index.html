@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GexBot Platform</title>
-  <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
   <style>
@@ -92,6 +91,60 @@ body::before {
 
 #sign-in {
   --clerk-border-radius: 4px;
+}
+
+.login-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 280px;
+}
+
+.login-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.pwd-input {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  padding: 0.7rem 1rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.pwd-input:focus { border-color: var(--accent-green); }
+.pwd-input::placeholder { letter-spacing: 0.1em; color: var(--text-dim); }
+
+.pwd-btn {
+  background: transparent;
+  border: 1px solid var(--accent-green);
+  color: var(--accent-green);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  padding: 0.7rem;
+  cursor: pointer;
+  letter-spacing: 0.2em;
+  transition: all 0.2s;
+}
+.pwd-btn:hover { background: rgba(0,255,136,0.1); }
+
+.pwd-error {
+  font-size: 0.65rem;
+  color: var(--accent-red);
+  text-align: center;
+  letter-spacing: 0.1em;
+  min-height: 1rem;
 }
 
 /* ════════════════════════════
@@ -388,7 +441,14 @@ canvas#gexChart { max-height: 300px; }
     <p>GAMMA EXPOSURE ANALYTICS PLATFORM</p>
     <p style="color:#3a5a7a;font-size:0.65rem;letter-spacing:0.15em;margin-top:0.3rem;">By Galactic Traders</p>
   </div>
-  <div id="sign-in"></div>
+  <div id="sign-in">
+    <div class="login-box">
+      <div class="login-label">ACCESO RESTRINGIDO</div>
+      <input type="password" id="pwd-input" class="pwd-input" placeholder="Contraseña" autocomplete="current-password" />
+      <div id="pwd-error" class="pwd-error"></div>
+      <button class="pwd-btn" onclick="checkPassword()">INGRESAR →</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════
@@ -544,24 +604,38 @@ canvas#gexChart { max-height: 300px; }
   let gexChart = null;
   let latestData = {};
 
-  /* ════════════════════
-     CLERK AUTH
-  ════════════════════ */
-  window.addEventListener('load', async () => {
-    const clerk = new window.Clerk(CLERK_KEY);
-    await clerk.load();
+  const ACCESS_PASSWORD = '1234';
 
-    if (clerk.user) {
+  /* ════════════════════
+     PASSWORD AUTH
+  ════════════════════ */
+  function checkPassword() {
+    const input = document.getElementById('pwd-input').value;
+    if (input === ACCESS_PASSWORD) {
+      sessionStorage.setItem('gexbot_auth', '1');
       startDashboard();
     } else {
-      clerk.redirectToSignIn({ redirectUrl: window.location.href });
+      document.getElementById('pwd-error').textContent = 'CONTRASEÑA INCORRECTA';
+      document.getElementById('pwd-input').value = '';
+      document.getElementById('pwd-input').focus();
     }
+  }
 
-    document.getElementById('btn-signout').addEventListener('click', async () => {
-      if (ws) ws.close();
-      await clerk.signOut();
-      location.reload();
+  // Allow Enter key
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('pwd-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') checkPassword();
     });
+    // Auto-check if already authenticated
+    if (sessionStorage.getItem('gexbot_auth') === '1') {
+      startDashboard();
+    }
+  });
+
+  document.getElementById('btn-signout').addEventListener('click', () => {
+    if (ws) ws.close();
+    sessionStorage.removeItem('gexbot_auth');
+    location.reload();
   });
 
   /* ════════════════════
