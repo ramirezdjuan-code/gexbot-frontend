@@ -621,22 +621,22 @@ canvas#gexChart { max-height: 300px; }
     }
   }
 
-  // Allow Enter key
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('pwd-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') checkPassword();
-    });
-    // Auto-check if already authenticated
-    if (sessionStorage.getItem('gexbot_auth') === '1') {
-      startDashboard();
-    }
+  // Enter key support
+  document.getElementById('pwd-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') checkPassword();
   });
 
+  // Sign out
   document.getElementById('btn-signout').addEventListener('click', () => {
     if (ws) ws.close();
     sessionStorage.removeItem('gexbot_auth');
     location.reload();
   });
+
+  // Auto-login if already authenticated
+  if (sessionStorage.getItem('gexbot_auth') === '1') {
+    startDashboard();
+  }
 
   /* ════════════════════
      DASHBOARD INIT
@@ -644,7 +644,7 @@ canvas#gexChart { max-height: 300px; }
   function startDashboard() {
     document.getElementById('auth-container').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
-    initChart();
+    try { initChart(); } catch(e) { console.warn('Chart no disponible:', e); }
     connectWebSocket();
     setupSymbolTabs();
   }
