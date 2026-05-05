@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>GexBot Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060b14;color:#e0eaff;font-family:'Courier New',monospace;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#1a2844}
+#header{background:#0c1422;border-bottom:1px solid #1a2844;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px}
+.logo span:first-child{font-size:20px;font-weight:800;color:#00d4ff}
+.logo span:last-child{font-size:20px;color:#e0eaff}
+#status-dot{width:8px;height:8px;border-radius:50%;background:#ffd600;box-shadow:0 0 8px #ffd600;display:inline-block;margin-right:6px}
+#status-text{font-size:11px;font-weight:700;color:#ffd600}
+#header-right{display:flex;align-items:center;gap:20px;font-size:11px;color:#6a85b0}
+#real-data-badge{color:#00e676;font-weight:700}
+#content{padding:20px 24px;max-width:1400px;margin:0 auto}
+#symbol-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.sym-btn{padding:7px 18px;border-radius:6px;border:1px solid #1a2844;cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:#6a85b0;font-family:inherit;transition:all 0.15s}
+.sym-btn.active{border-color:#00d4ff;background:rgba(0,212,255,0.12);color:#00d4ff}
+#quote-box{display:flex;align-items:baseline;gap:10px}
+#quote-price{font-size:30px;font-weight:800;color:#e0eaff}
+#quote-change{font-size:15px;font-weight:700}
+#regime-bar{margin-bottom:20px}
+#regime-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;font-weight:700;font-size:13px}
+#kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:#0c1422;border:1px solid #1a2844;border-radius:10px;padding:14px 18px}
+.kpi-label{font-size:10px;color:#6a85b0;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:4px}
+.kpi-value{font-size:22px;font-weight:800;font-family:monospace}
+.kpi-sub{font-size:11px;color:#6a85b0;margin-top:4px}
+#main-grid{display:grid;grid-template-columns:1fr 300px;gap:16px}
+#chart-box{background:#0c1422;border:1px solid #1a2844;border-radius:12px;padding:16px}
+#chart-legend{font-size:12px;color:#6a85b0;display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+#side{display:flex;flex-direction:column;gap:12px}
+.panel{background:#0c1422;border:1px solid #1a2844;border-radius:12px;padding:16px}
+.panel-title{font-size:11px;color:#6a85b0;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-bottom:12px}
+.level-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;margin-bottom:4px}
+.level-label{font-size:11px}
+.level-val{font-family:monospace;font-size:13px;font-weight:700}
+.interp{font-size:12px;line-height:1.6;color:#6a85b0}
+.interp-box{padding:10px;border-radius:8px;margin-bottom:10px;font-size:12px}
+@media(max-width:900px){#main-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="header">
+  <div class="logo">
+    <span>GEX</span><span>BOT</span>
+    <div style="width:1px;height:20px;background:#1a2844;margin:0 8px"></div>
+    <span id="status-dot"></span><span id="status-text">CONECTANDO...</span>
+  </div>
+  <div id="header-right">
+    <span id="real-data-badge" style="display:none">🔴 DATOS REALES - ThinkOrSwim</span>
+    <span id="users-count">👥 0 usuarios</span>
+    <span id="market-status">⚫ Mercado</span>
+    <span id="last-update"></span>
+  </div>
+</div>
+
+<div id="content">
+  <div id="symbol-bar">
+    <div id="sym-buttons"></div>
+    <div id="quote-box">
+      <span id="quote-price">—</span>
+      <span id="quote-change">—</span>
+    </div>
+  </div>
+
+  <div id="regime-bar">
+    <span id="regime-badge">Cargando...</span>
+  </div>
+
+  <div id="kpis">
+    <div class="kpi" style="border-top:2px solid #ffd600">
+      <div class="kpi-label">Zero Gamma</div>
+      <div class="kpi-value" id="kpi-zg" style="color:#ffd600">—</div>
+      <div class="kpi-sub" id="kpi-zg-sub">—</div>
+    </div>
+    <div class="kpi" style="border-top:2px solid #00e676">
+      <div class="kpi-label">Call Wall</div>
+      <div class="kpi-value" id="kpi-cw" style="color:#00e676">—</div>
+      <div class="kpi-sub">Resistencia principal</div>
+    </div>
+    <div class="kpi" style="border-top:2px solid #ff3d60">
+      <div class="kpi-label">Put Wall</div>
+      <div class="kpi-value" id="kpi-pw" style="color:#ff3d60">—</div>
+      <div class="kpi-sub">Soporte principal</div>
+    </div>
+    <div class="kpi" id="kpi-gex-card" style="border-top:2px solid #00e676">
+      <div class="kpi-label">Net GEX</div>
+      <div class="kpi-value" id="kpi-gex">—</div>
+      <div class="kpi-sub" id="kpi-gex-sub">—</div>
+    </div>
+    <div class="kpi" id="kpi-vol-card" style="border-top:2px solid #00d4ff">
+      <div class="kpi-label">GEX Volume</div>
+      <div class="kpi-value" id="kpi-vol" style="color:#00d4ff">—</div>
+      <div class="kpi-sub">Flujo intradía</div>
+    </div>
+    <div class="kpi" style="border-top:2px solid #ffd600">
+      <div class="kpi-label">Max Gamma</div>
+      <div class="kpi-value" id="kpi-mg" style="color:#ffd600">—</div>
+      <div class="kpi-sub">Strike de mayor cambio</div>
+    </div>
+  </div>
+
+  <div id="main-grid">
+    <div id="chart-box">
+      <div id="chart-legend">
+        <span><span style="color:#00d4ff">■</span> Call Wall</span>
+        <span><span style="color:#00e676">■</span> Call GEX</span>
+        <span><span style="color:#ff3d60">■</span> Put GEX</span>
+        <span><span style="color:#ffd600">■</span> Put Wall / Zero Gamma</span>
+      </div>
+      <canvas id="gexChart" height="350"></canvas>
+    </div>
+    <div id="side">
+      <div class="panel">
+        <div class="panel-title">Niveles Clave</div>
+        <div id="levels-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Interpretación</div>
+        <div id="interpretation"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Estado del Sistema</div>
+        <div id="sys-status"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const WS_URL = 'wss://gexbot-backend.onrender.com';
+let chart = null;
+let currentSymbol = 'SPY';
+let appData = null;
+
+// WebSocket
+function connect() {
+  const ws = new WebSocket(WS_URL);
+  ws.onopen = () => setStatus('connected');
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'GEX_UPDATE' || msg.type === 'CONNECTED') {
+        appData = msg.data;
+        render();
+      }
+    } catch(ex) {}
+  };
+  ws.onclose = () => { setStatus('disconnected'); setTimeout(connect, 3000); };
+  ws.onerror = () => { setStatus('error'); ws.close(); };
+}
+
+function setStatus(s) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  const colors = {connected:'#00e676', disconnected:'#ff3d60', connecting:'#ffd600', error:'#ff3d60'};
+  const labels = {connected:'EN VIVO', disconnected:'DESCONECTADO', connecting:'CONECTANDO...', error:'ERROR'};
+  dot.style.background = colors[s];
+  dot.style.boxShadow = '0 0 8px ' + colors[s];
+  txt.style.color = colors[s];
+  txt.textContent = labels[s];
+}
+
+function fmt(n, d) { return n == null ? '—' : Number(n).toFixed(d || 2); }
+function fmtB(n) { if (n == null) return '—'; return (n > 0 ? '+' : '') + fmt(n) + 'B'; }
+
+function render() {
+  if (!appData) return;
+  const d = appData;
+  const gex = d.gexData && d.gexData[currentSymbol];
+  const quote = d.quotes && d.quotes[currentSymbol];
+  const spot = gex && gex.spot;
+
+  // Header
+  if (d.usingRealData) document.getElementById('real-data-badge').style.display = 'inline';
+  document.getElementById('users-count').textContent = '👥 ' + (d.connectedUsers || 0) + ' usuarios';
+  document.getElementById('market-status').textContent = d.isMarketOpen ? '🟢 Mercado abierto' : '🔴 Mercado cerrado';
+  if (d.lastUpdate) document.getElementById('last-update').textContent = '⏱ ' + new Date(d.lastUpdate).toLocaleTimeString('es-MX', {hour12:false});
+
+  // Symbol buttons
+  const syms = d.symbols || ['SPY','QQQ','SPX'];
+  const btnBox = document.getElementById('sym-buttons');
+  if (btnBox.children.length !== syms.length) {
+    btnBox.innerHTML = '';
+    syms.forEach(s => {
+      const b = document.createElement('button');
+      b.className = 'sym-btn' + (s === currentSymbol ? ' active' : '');
+      b.textContent = s;
+      b.onclick = () => { currentSymbol = s; render(); };
+      btnBox.appendChild(b);
+    });
+  } else {
+    Array.from(btnBox.children).forEach((b,i) => b.className = 'sym-btn' + (syms[i] === currentSymbol ? ' active' : ''));
+  }
+
+  // Quote
+  if (quote) {
+    document.getElementById('quote-price').textContent = '$' + fmt(quote.last);
+    const ch = parseFloat(quote.change);
+    const cel = document.getElementById('quote-change');
+    cel.textContent = (ch >= 0 ? '+' : '') + fmt(quote.change) + ' (' + fmt(quote.change_percentage) + '%)';
+    cel.style.color = ch >= 0 ? '#00e676' : '#ff3d60';
+  }
+
+  if (!gex) return;
+
+  // Regime
+  const rb = document.getElementById('regime-badge');
+  const isPos = gex.regime === 'positive';
+  rb.textContent = isPos ? '▲ RÉGIMEN POSITIVO — Mercado estable' : '▼ RÉGIMEN NEGATIVO — Alta volatilidad';
+  rb.style.background = isPos ? 'rgba(0,230,118,0.12)' : 'rgba(255,61,96,0.12)';
+  rb.style.border = '1px solid ' + (isPos ? '#00e676' : '#ff3d60');
+  rb.style.color = isPos ? '#00e676' : '#ff3d60';
+
+  // KPIs
+  document.getElementById('kpi-zg').textContent = gex.zeroGamma ? fmt(gex.zeroGamma, 1) : '—';
+  document.getElementById('kpi-zg-sub').textContent = spot > gex.zeroGamma ? '▲ Sobre ZG' : '▼ Bajo ZG';
+  document.getElementById('kpi-cw').textContent = gex.majorPositiveGamma ? fmt(gex.majorPositiveGamma, 0) : '—';
+  document.getElementById('kpi-pw').textContent = gex.majorNegativeGamma ? fmt(gex.majorNegativeGamma, 0) : '—';
+  document.getElementById('kpi-gex').textContent = fmtB(gex.totalNetGEX);
+  document.getElementById('kpi-gex').style.color = gex.totalNetGEX >= 0 ? '#00e676' : '#ff3d60';
+  document.getElementById('kpi-gex-card').style.borderTopColor = gex.totalNetGEX >= 0 ? '#00e676' : '#ff3d60';
+  document.getElementById('kpi-gex-sub').textContent = isPos ? 'Estabilizador' : 'Amplificador';
+  document.getElementById('kpi-vol').textContent = fmtB(gex.netGEXVolume);
+  document.getElementById('kpi-mg').textContent = gex.maxGammaChange ? fmt(gex.maxGammaChange, 0) : '—';
+
+  // Levels
+  const levels = [
+    {label:'Call Wall 1', val: gex.top3Calls && gex.top3Calls[0], color:'#00e676'},
+    {label:'Call Wall 2', val: gex.top3Calls && gex.top3Calls[1], color:'rgba(0,230,118,0.6)'},
+    {label:'Call Wall 3', val: gex.top3Calls && gex.top3Calls[2], color:'rgba(0,230,118,0.4)'},
+    {label:'── Spot ──', val: spot, color:'#00d4ff', bold:true},
+    {label:'── Zero Gamma ──', val: gex.zeroGamma, color:'#ffd600', bold:true},
+    {label:'Put Wall 1', val: gex.top3Puts && gex.top3Puts[0], color:'#ff3d60'},
+    {label:'Put Wall 2', val: gex.top3Puts && gex.top3Puts[1], color:'rgba(255,61,96,0.6)'},
+    {label:'Put Wall 3', val: gex.top3Puts && gex.top3Puts[2], color:'rgba(255,61,96,0.4)'},
+  ];
+  const ll = document.getElementById('levels-list');
+  ll.innerHTML = levels.map(l => `
+    <div class="level-row" style="${l.bold ? 'border-left:3px solid '+l.color+';padding-left:8px' : ''}">
+      <span class="level-label" style="color:${l.color}">${l.label}</span>
+      <span class="level-val" style="color:${l.color}">${l.val ? Number(l.val).toFixed(1) : '—'}</span>
+    </div>`).join('');
+
+  // Interpretation
+  document.getElementById('interpretation').innerHTML = `
+    <div class="interp-box" style="background:${isPos ? 'rgba(0,230,118,0.08)' : 'rgba(255,61,96,0.08)'};color:${isPos ? '#00e676' : '#ff3d60'}">
+      ${isPos ? '✅ Dealers amortiguan movimientos. Favorece rangos y mean-reversion.' : '⚠️ Dealers amplifican movimientos. Favorece momentum y tendencias.'}
+    </div>
+    <div class="interp">${spot > gex.zeroGamma ? '<span style="color:#00e676">▲</span> Spot sobre Zero Gamma → régimen estable' : '<span style="color:#ff3d60">▼</span> Spot bajo Zero Gamma → mayor volatilidad'}</div>`;
+
+  // System status
+  document.getElementById('sys-status').innerHTML = `
+    <div class="level-row"><span style="color:#6a85b0;font-size:12px">Fuente</span><span style="font-size:12px;color:${d.usingRealData ? '#00e676' : '#ffd600'}">${d.usingRealData ? 'ThinkOrSwim' : 'Simulado'}</span></div>
+    <div class="level-row"><span style="color:#6a85b0;font-size:12px">Usuarios</span><span style="font-size:12px;color:#00d4ff">${d.connectedUsers || 0}</span></div>
+    <div class="level-row"><span style="color:#6a85b0;font-size:12px">Mercado</span><span style="font-size:12px;color:${d.isMarketOpen ? '#00e676' : '#ff3d60'}">${d.isMarketOpen ? 'Abierto' : 'Cerrado'}</span></div>`;
+
+  // Chart
+  renderChart(gex, spot);
+}
+
+function renderChart(gex, spot) {
+  if (!gex.profile || !gex.profile.length) return;
+  const filtered = gex.profile
+    .filter(s => Math.abs(s.strike - spot) / spot < 0.08)
+    .sort((a,b) => a.strike - b.strike);
+
+  const labels = filtered.map(s => s.strike.toFixed(0));
+  const calls = filtered.map(s => s.callGEX || 0);
+  const puts = filtered.map(s => -(s.putGEX || 0));
+  const bgCalls = filtered.map(s => s.isMajorPositive ? '#00d4ff' : '#00e676');
+  const bgPuts = filtered.map(s => s.isMajorNegative ? '#ffd600' : '#ff3d60');
+
+  const ctx = document.getElementById('gexChart').getContext('2d');
+  if (chart) { chart.destroy(); }
+
+  const spotIdx = filtered.reduce((best, s, i) => Math.abs(s.strike - spot) < Math.abs(filtered[best].strike - spot) ? i : best, 0);
+  const zgIdx = filtered.reduce((best, s, i) => Math.abs(s.strike - gex.zeroGamma) < Math.abs(filtered[best].strike - gex.zeroGamma) ? i : best, 0);
+
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Call GEX', data: calls, backgroundColor: bgCalls, borderRadius: 2 },
+        { label: 'Put GEX', data: puts, backgroundColor: bgPuts, borderRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ctx.dataset.label + ': ' + Math.abs(ctx.raw).toFixed(3) + 'B'
+          }
+        },
+        annotation: {}
+      },
+      scales: {
+        x: {
+          stacked: false,
+          ticks: { color: '#6a85b0', font: { size: 10 }, maxTicksLimit: 8 },
+          grid: { color: '#1a2844' }
+        },
+        y: {
+          ticks: { color: '#6a85b0', font: { size: 10 }, callback: v => v.toFixed(1) + 'B' },
+          grid: { color: '#1a2844' }
+        }
+      }
+    }
+  });
+}
+
+connect();
+</script>
+</body>
+</html>
