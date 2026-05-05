@@ -554,8 +554,7 @@ canvas#gexChart { max-height: 300px; }
     if (clerk.user) {
       startDashboard();
     } else {
-      clerk.mountSignIn(document.getElementById('sign-in'));
-      clerk.addListener(({ user }) => { if (user) startDashboard(); });
+      clerk.redirectToSignIn({ redirectUrl: window.location.href });
     }
 
     document.getElementById('btn-signout').addEventListener('click', async () => {
