@@ -1,325 +1,826 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>GexBot Platform</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#060b14;color:#e0eaff;font-family:'Courier New',monospace;min-height:100vh}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#1a2844}
-#header{background:#0c1422;border-bottom:1px solid #1a2844;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{display:flex;align-items:center;gap:8px}
-.logo span:first-child{font-size:20px;font-weight:800;color:#00d4ff}
-.logo span:last-child{font-size:20px;color:#e0eaff}
-#status-dot{width:8px;height:8px;border-radius:50%;background:#ffd600;box-shadow:0 0 8px #ffd600;display:inline-block;margin-right:6px}
-#status-text{font-size:11px;font-weight:700;color:#ffd600}
-#header-right{display:flex;align-items:center;gap:20px;font-size:11px;color:#6a85b0}
-#real-data-badge{color:#00e676;font-weight:700}
-#content{padding:20px 24px;max-width:1400px;margin:0 auto}
-#symbol-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.sym-btn{padding:7px 18px;border-radius:6px;border:1px solid #1a2844;cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:#6a85b0;font-family:inherit;transition:all 0.15s}
-.sym-btn.active{border-color:#00d4ff;background:rgba(0,212,255,0.12);color:#00d4ff}
-#quote-box{display:flex;align-items:baseline;gap:10px}
-#quote-price{font-size:30px;font-weight:800;color:#e0eaff}
-#quote-change{font-size:15px;font-weight:700}
-#regime-bar{margin-bottom:20px}
-#regime-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;font-weight:700;font-size:13px}
-#kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
-.kpi{background:#0c1422;border:1px solid #1a2844;border-radius:10px;padding:14px 18px}
-.kpi-label{font-size:10px;color:#6a85b0;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:4px}
-.kpi-value{font-size:22px;font-weight:800;font-family:monospace}
-.kpi-sub{font-size:11px;color:#6a85b0;margin-top:4px}
-#main-grid{display:grid;grid-template-columns:1fr 300px;gap:16px}
-#chart-box{background:#0c1422;border:1px solid #1a2844;border-radius:12px;padding:16px}
-#chart-legend{font-size:12px;color:#6a85b0;display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
-#side{display:flex;flex-direction:column;gap:12px}
-.panel{background:#0c1422;border:1px solid #1a2844;border-radius:12px;padding:16px}
-.panel-title{font-size:11px;color:#6a85b0;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-bottom:12px}
-.level-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;margin-bottom:4px}
-.level-label{font-size:11px}
-.level-val{font-family:monospace;font-size:13px;font-weight:700}
-.interp{font-size:12px;line-height:1.6;color:#6a85b0}
-.interp-box{padding:10px;border-radius:8px;margin-bottom:10px;font-size:12px}
-@media(max-width:900px){#main-grid{grid-template-columns:1fr}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GexBot Platform</title>
+  <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060a12;
+      --bg2: #0d1422;
+      --bg3: #111927;
+      --border: #1e2d45;
+      --accent-green: #00ff88;
+      --accent-yellow: #ffd700;
+      --accent-red: #ff4466;
+      --accent-blue: #00aaff;
+      --accent-purple: #aa66ff;
+      --text: #c8d8e8;
+      --text-dim: #5a7a9a;
+      --card-bg: rgba(13, 20, 34, 0.9);
+    }
+
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── SCANLINE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ════════════════════════════
+   AUTH GATE
+════════════════════════════ */
+#auth-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at center, #0d1a2e 0%, #060a12 70%);
+  gap: 2rem;
+}
+
+.auth-logo {
+  text-align: center;
+}
+
+.auth-logo h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--accent-green);
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 30px rgba(0,255,136,0.5);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.auth-logo p {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  margin-top: 0.4rem;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(0,255,136,0.4); }
+  50% { text-shadow: 0 0 50px rgba(0,255,136,0.8), 0 0 100px rgba(0,255,136,0.3); }
+}
+
+#sign-in {
+  --clerk-border-radius: 4px;
+}
+
+/* ════════════════════════════
+   DASHBOARD
+════════════════════════════ */
+#dashboard { display: none; }
+
+/* ─── HEADER ─── */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0.6rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: var(--accent-green);
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 15px rgba(0,255,136,0.5);
+  white-space: nowrap;
+}
+
+.logo span { color: var(--accent-yellow); }
+
+#status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent-yellow);
+  flex-shrink: 0;
+}
+#status-dot.connected { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); animation: blink 2s infinite; }
+#status-dot.error { background: var(--accent-red); }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+#status-text {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+/* Symbol tabs */
+.symbol-tabs {
+  display: flex;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+.sym-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+.sym-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+.sym-btn.active { border-color: var(--accent-green); color: var(--accent-green); background: rgba(0,255,136,0.08); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#user-count {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+#btn-signout {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+#btn-signout:hover { border-color: var(--accent-red); color: var(--accent-red); }
+
+/* ─── MAIN LAYOUT ─── */
+.main {
+  padding: 1rem;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ─── METRIC CARDS ─── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.6rem;
+}
+
+@media (max-width: 1200px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .cards { grid-template-columns: repeat(2, 1fr); } }
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 0.8rem 1rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-color, var(--accent-blue));
+}
+.card:hover { border-color: var(--card-color, var(--accent-blue)); }
+
+.card-label {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.card-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--card-color, var(--accent-blue));
+  letter-spacing: 0.05em;
+  min-height: 1.5rem;
+}
+
+.card-sub {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+  letter-spacing: 0.05em;
+}
+
+.card-zero  { --card-color: var(--accent-yellow); }
+.card-call  { --card-color: var(--accent-green); }
+.card-put   { --card-color: var(--accent-red); }
+.card-net   { --card-color: var(--accent-blue); }
+.card-vol   { --card-color: var(--accent-purple); }
+.card-max   { --card-color: #ff8800; }
+
+/* ─── BOTTOM SECTION ─── */
+.bottom {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0.8rem;
+}
+
+@media (max-width: 900px) { .bottom { grid-template-columns: 1fr; } }
+
+/* ─── CHART ─── */
+.chart-container {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  position: relative;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.chart-title {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.legend {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}
+
+.leg-dot { width: 8px; height: 2px; border-radius: 1px; }
+
+canvas#gexChart { max-height: 300px; }
+
+/* ─── SIDE PANEL ─── */
+.side-panel { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.panel-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 0.8rem 1rem;
+}
+
+.panel-title {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+}
+
+.nivel-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(30,45,69,0.5);
+}
+.nivel-row:last-child { border-bottom: none; }
+.nivel-label { color: var(--text-dim); }
+.nivel-val { font-weight: bold; }
+
+.interp-text {
+  font-size: 0.68rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  padding: 0.2rem 0;
+  color: var(--text-dim);
+}
+.status-ok { color: var(--accent-green); }
+.status-warn { color: var(--accent-yellow); }
+.status-err { color: var(--accent-red); }
+
+/* ─── LOADING STATE ─── */
+.loading {
+  animation: loading-pulse 1.5s ease-in-out infinite;
+}
+@keyframes loading-pulse {
+  0%,100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ─── TICKER ─── */
+.ticker-bar {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 0.3rem 1rem;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ticker-inner { display: inline-block; animation: scroll-ticker 40s linear infinite; }
+@keyframes scroll-ticker { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
+
+
+  </style>
 </head>
 <body>
-<div id="header">
-  <div class="logo">
-    <span>GEX</span><span>BOT</span>
-    <div style="width:1px;height:20px;background:#1a2844;margin:0 8px"></div>
-    <span id="status-dot"></span><span id="status-text">CONECTANDO...</span>
+
+<!-- ═══════════════════════════════
+     AUTH GATE
+═══════════════════════════════ -->
+
+<div id="auth-container">
+  <div class="auth-logo">
+    <h1>GEX<span style="color:#ffd700">BOT</span></h1>
+    <p>GAMMA EXPOSURE ANALYTICS PLATFORM</p>
   </div>
-  <div id="header-right">
-    <span id="real-data-badge" style="display:none">🔴 DATOS REALES - ThinkOrSwim</span>
-    <span id="users-count">👥 0 usuarios</span>
-    <span id="market-status">⚫ Mercado</span>
-    <span id="last-update"></span>
+  <div id="sign-in"></div>
+</div>
+
+<!-- ═══════════════════════════════
+     DASHBOARD
+═══════════════════════════════ -->
+
+<div id="dashboard">
+
+  <header>
+    <div class="logo">GEX<span>BOT</span></div>
+    <div id="status-dot"></div>
+    <div id="status-text">CONECTANDO...</div>
+
+
+<div class="symbol-tabs">
+  <button class="sym-btn active" data-sym="SPY">SPY</button>
+  <button class="sym-btn" data-sym="QQQ">QQQ</button>
+  <button class="sym-btn" data-sym="SPX">SPX</button>
+</div>
+
+<div class="header-right">
+  <div id="user-count">— usuarios</div>
+  <button id="btn-signout">SALIR</button>
+</div>
+
+
+  </header>
+
+  <div class="main">
+
+
+<!-- CARDS -->
+<div class="cards">
+  <div class="card card-zero">
+    <div class="card-label">Zero Gamma</div>
+    <div class="card-value loading" id="val-zero">—</div>
+    <div class="card-sub">Punto de pivote</div>
+  </div>
+  <div class="card card-call">
+    <div class="card-label">Call Wall</div>
+    <div class="card-value loading" id="val-call">—</div>
+    <div class="card-sub">Resistencia principal</div>
+  </div>
+  <div class="card card-put">
+    <div class="card-label">Put Wall</div>
+    <div class="card-value loading" id="val-put">—</div>
+    <div class="card-sub">Soporte principal</div>
+  </div>
+  <div class="card card-net">
+    <div class="card-label">Net GEX</div>
+    <div class="card-value loading" id="val-net">—</div>
+    <div class="card-sub" id="sub-net">—</div>
+  </div>
+  <div class="card card-vol">
+    <div class="card-label">GEX Volume</div>
+    <div class="card-value loading" id="val-vol">—</div>
+    <div class="card-sub">Flujo intradiario</div>
+  </div>
+  <div class="card card-max">
+    <div class="card-label">Max Gamma</div>
+    <div class="card-value loading" id="val-max">—</div>
+    <div class="card-sub">Strike de mayor cambio</div>
   </div>
 </div>
 
-<div id="content">
-  <div id="symbol-bar">
-    <div id="sym-buttons"></div>
-    <div id="quote-box">
-      <span id="quote-price">—</span>
-      <span id="quote-change">—</span>
+<!-- BOTTOM -->
+<div class="bottom">
+
+  <!-- CHART -->
+  <div class="chart-container">
+    <div class="chart-header">
+      <div class="chart-title">GAMMA EXPOSURE — DISTRIBUCIÓN POR STRIKE</div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#00ff88"></div> Call GEX</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff4466"></div> Put GEX</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffd700;width:1px;height:12px;border-radius:0"></div> Zero Gamma</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#00aaff;width:1px;height:12px;border-radius:0"></div> Call Wall</div>
+      </div>
     </div>
+    <canvas id="gexChart"></canvas>
   </div>
 
-  <div id="regime-bar">
-    <span id="regime-badge">Cargando...</span>
+  <!-- SIDE PANEL -->
+  <div class="side-panel">
+
+    <div class="panel-box">
+      <div class="panel-title">Niveles Clave</div>
+      <div class="nivel-row">
+        <span class="nivel-label">Call Wall</span>
+        <span class="nivel-val" id="niv-call" style="color:var(--accent-green)">—</span>
+      </div>
+      <div class="nivel-row">
+        <span class="nivel-label">Put Wall</span>
+        <span class="nivel-val" id="niv-put" style="color:var(--accent-red)">—</span>
+      </div>
+      <div class="nivel-row">
+        <span class="nivel-label">Zero Gamma</span>
+        <span class="nivel-val" id="niv-zero" style="color:var(--accent-yellow)">—</span>
+      </div>
+      <div class="nivel-row">
+        <span class="nivel-label">Max Gamma</span>
+        <span class="nivel-val" id="niv-max" style="color:#ff8800">—</span>
+      </div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-title">Interpretación</div>
+      <div class="interp-text" id="interpretacion">
+        Esperando datos del mercado...
+      </div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-title">Estado del Sistema</div>
+      <div class="status-row">
+        <span>Backend</span>
+        <span id="st-backend" class="status-warn">CONECTANDO</span>
+      </div>
+      <div class="status-row">
+        <span>Schwab API</span>
+        <span id="st-schwab" class="status-warn">—</span>
+      </div>
+      <div class="status-row">
+        <span>WebSocket</span>
+        <span id="st-ws" class="status-warn">—</span>
+      </div>
+      <div class="status-row">
+        <span>Última actualiz.</span>
+        <span id="st-update" style="color:var(--text-dim)">—</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
   </div>
 
-  <div id="kpis">
-    <div class="kpi" style="border-top:2px solid #ffd600">
-      <div class="kpi-label">Zero Gamma</div>
-      <div class="kpi-value" id="kpi-zg" style="color:#ffd600">—</div>
-      <div class="kpi-sub" id="kpi-zg-sub">—</div>
-    </div>
-    <div class="kpi" style="border-top:2px solid #00e676">
-      <div class="kpi-label">Call Wall</div>
-      <div class="kpi-value" id="kpi-cw" style="color:#00e676">—</div>
-      <div class="kpi-sub">Resistencia principal</div>
-    </div>
-    <div class="kpi" style="border-top:2px solid #ff3d60">
-      <div class="kpi-label">Put Wall</div>
-      <div class="kpi-value" id="kpi-pw" style="color:#ff3d60">—</div>
-      <div class="kpi-sub">Soporte principal</div>
-    </div>
-    <div class="kpi" id="kpi-gex-card" style="border-top:2px solid #00e676">
-      <div class="kpi-label">Net GEX</div>
-      <div class="kpi-value" id="kpi-gex">—</div>
-      <div class="kpi-sub" id="kpi-gex-sub">—</div>
-    </div>
-    <div class="kpi" id="kpi-vol-card" style="border-top:2px solid #00d4ff">
-      <div class="kpi-label">GEX Volume</div>
-      <div class="kpi-value" id="kpi-vol" style="color:#00d4ff">—</div>
-      <div class="kpi-sub">Flujo intradía</div>
-    </div>
-    <div class="kpi" style="border-top:2px solid #ffd600">
-      <div class="kpi-label">Max Gamma</div>
-      <div class="kpi-value" id="kpi-mg" style="color:#ffd600">—</div>
-      <div class="kpi-sub">Strike de mayor cambio</div>
-    </div>
+  <div class="ticker-bar">
+    <span class="ticker-inner" id="ticker-text">
+      GEXBOT PLATFORM &nbsp;|&nbsp; GAMMA EXPOSURE ANALYTICS &nbsp;|&nbsp; SCHWAB MARKET DATA &nbsp;|&nbsp; REAL-TIME OPTIONS FLOW &nbsp;|&nbsp;
+    </span>
   </div>
 
-  <div id="main-grid">
-    <div id="chart-box">
-      <div id="chart-legend">
-        <span><span style="color:#00d4ff">■</span> Call Wall</span>
-        <span><span style="color:#00e676">■</span> Call GEX</span>
-        <span><span style="color:#ff3d60">■</span> Put GEX</span>
-        <span><span style="color:#ffd600">■</span> Put Wall / Zero Gamma</span>
-      </div>
-      <canvas id="gexChart" height="350"></canvas>
-    </div>
-    <div id="side">
-      <div class="panel">
-        <div class="panel-title">Niveles Clave</div>
-        <div id="levels-list"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Interpretación</div>
-        <div id="interpretation"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Estado del Sistema</div>
-        <div id="sys-status"></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
-const WS_URL = 'wss://gexbot-backend.onrender.com';
-let chart = null;
-let currentSymbol = 'SPY';
-let appData = null;
+  const BACKEND_URL = 'https://gexbot-backend.onrender.com';
+  const CLERK_KEY   = 'pk_test_ZGVjZW50LWxlZWNoLTU3LmNsZXJrLmFjY291bnRzLmRldiQ';
 
-// WebSocket
-function connect() {
-  const ws = new WebSocket(WS_URL);
-  ws.onopen = () => setStatus('connected');
-  ws.onmessage = (e) => {
-    try {
-      const msg = JSON.parse(e.data);
-      if (msg.type === 'GEX_UPDATE' || msg.type === 'CONNECTED') {
-        appData = msg.data;
-        render();
-      }
-    } catch(ex) {}
-  };
-  ws.onclose = () => { setStatus('disconnected'); setTimeout(connect, 3000); };
-  ws.onerror = () => { setStatus('error'); ws.close(); };
-}
+  let ws = null;
+  let currentSymbol = 'SPY';
+  let gexChart = null;
+  let latestData = {};
 
-function setStatus(s) {
-  const dot = document.getElementById('status-dot');
-  const txt = document.getElementById('status-text');
-  const colors = {connected:'#00e676', disconnected:'#ff3d60', connecting:'#ffd600', error:'#ff3d60'};
-  const labels = {connected:'EN VIVO', disconnected:'DESCONECTADO', connecting:'CONECTANDO...', error:'ERROR'};
-  dot.style.background = colors[s];
-  dot.style.boxShadow = '0 0 8px ' + colors[s];
-  txt.style.color = colors[s];
-  txt.textContent = labels[s];
-}
+  /* ════════════════════
+     CLERK AUTH
+  ════════════════════ */
+  window.addEventListener('load', async () => {
+    const clerk = new window.Clerk(CLERK_KEY);
+    await clerk.load();
 
-function fmt(n, d) { return n == null ? '—' : Number(n).toFixed(d || 2); }
-function fmtB(n) { if (n == null) return '—'; return (n > 0 ? '+' : '') + fmt(n) + 'B'; }
+    if (clerk.user) {
+      startDashboard();
+    } else {
+      clerk.mountSignIn(document.getElementById('sign-in'));
+      clerk.addListener(({ user }) => { if (user) startDashboard(); });
+    }
 
-function render() {
-  if (!appData) return;
-  const d = appData;
-  const gex = d.gexData && d.gexData[currentSymbol];
-  const quote = d.quotes && d.quotes[currentSymbol];
-  const spot = gex && gex.spot;
-
-  // Header
-  if (d.usingRealData) document.getElementById('real-data-badge').style.display = 'inline';
-  document.getElementById('users-count').textContent = '👥 ' + (d.connectedUsers || 0) + ' usuarios';
-  document.getElementById('market-status').textContent = d.isMarketOpen ? '🟢 Mercado abierto' : '🔴 Mercado cerrado';
-  if (d.lastUpdate) document.getElementById('last-update').textContent = '⏱ ' + new Date(d.lastUpdate).toLocaleTimeString('es-MX', {hour12:false});
-
-  // Symbol buttons
-  const syms = d.symbols || ['SPY','QQQ','SPX'];
-  const btnBox = document.getElementById('sym-buttons');
-  if (btnBox.children.length !== syms.length) {
-    btnBox.innerHTML = '';
-    syms.forEach(s => {
-      const b = document.createElement('button');
-      b.className = 'sym-btn' + (s === currentSymbol ? ' active' : '');
-      b.textContent = s;
-      b.onclick = () => { currentSymbol = s; render(); };
-      btnBox.appendChild(b);
+    document.getElementById('btn-signout').addEventListener('click', async () => {
+      if (ws) ws.close();
+      await clerk.signOut();
+      location.reload();
     });
-  } else {
-    Array.from(btnBox.children).forEach((b,i) => b.className = 'sym-btn' + (syms[i] === currentSymbol ? ' active' : ''));
+  });
+
+  /* ════════════════════
+     DASHBOARD INIT
+  ════════════════════ */
+  function startDashboard() {
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    initChart();
+    connectWebSocket();
+    setupSymbolTabs();
   }
 
-  // Quote
-  if (quote) {
-    document.getElementById('quote-price').textContent = '$' + fmt(quote.last);
-    const ch = parseFloat(quote.change);
-    const cel = document.getElementById('quote-change');
-    cel.textContent = (ch >= 0 ? '+' : '') + fmt(quote.change) + ' (' + fmt(quote.change_percentage) + '%)';
-    cel.style.color = ch >= 0 ? '#00e676' : '#ff3d60';
+  /* ════════════════════
+     SYMBOL TABS
+  ════════════════════ */
+  function setupSymbolTabs() {
+    document.querySelectorAll('.sym-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sym-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentSymbol = btn.dataset.sym;
+        renderSymbolData(currentSymbol);
+      });
+    });
   }
 
-  if (!gex) return;
+  /* ════════════════════
+     WEBSOCKET
+  ════════════════════ */
+  function connectWebSocket() {
+    const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
+    ws = new WebSocket(wsUrl);
 
-  // Regime
-  const rb = document.getElementById('regime-badge');
-  const isPos = gex.regime === 'positive';
-  rb.textContent = isPos ? '▲ RÉGIMEN POSITIVO — Mercado estable' : '▼ RÉGIMEN NEGATIVO — Alta volatilidad';
-  rb.style.background = isPos ? 'rgba(0,230,118,0.12)' : 'rgba(255,61,96,0.12)';
-  rb.style.border = '1px solid ' + (isPos ? '#00e676' : '#ff3d60');
-  rb.style.color = isPos ? '#00e676' : '#ff3d60';
+    ws.onopen = () => {
+      setStatus('connected');
+      document.getElementById('st-ws').textContent = 'ACTIVO';
+      document.getElementById('st-ws').className = 'status-ok';
+      document.getElementById('st-backend').textContent = 'ONLINE';
+      document.getElementById('st-backend').className = 'status-ok';
+    };
 
-  // KPIs
-  document.getElementById('kpi-zg').textContent = gex.zeroGamma ? fmt(gex.zeroGamma, 1) : '—';
-  document.getElementById('kpi-zg-sub').textContent = spot > gex.zeroGamma ? '▲ Sobre ZG' : '▼ Bajo ZG';
-  document.getElementById('kpi-cw').textContent = gex.majorPositiveGamma ? fmt(gex.majorPositiveGamma, 0) : '—';
-  document.getElementById('kpi-pw').textContent = gex.majorNegativeGamma ? fmt(gex.majorNegativeGamma, 0) : '—';
-  document.getElementById('kpi-gex').textContent = fmtB(gex.totalNetGEX);
-  document.getElementById('kpi-gex').style.color = gex.totalNetGEX >= 0 ? '#00e676' : '#ff3d60';
-  document.getElementById('kpi-gex-card').style.borderTopColor = gex.totalNetGEX >= 0 ? '#00e676' : '#ff3d60';
-  document.getElementById('kpi-gex-sub').textContent = isPos ? 'Estabilizador' : 'Amplificador';
-  document.getElementById('kpi-vol').textContent = fmtB(gex.netGEXVolume);
-  document.getElementById('kpi-mg').textContent = gex.maxGammaChange ? fmt(gex.maxGammaChange, 0) : '—';
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
 
-  // Levels
-  const levels = [
-    {label:'Call Wall 1', val: gex.top3Calls && gex.top3Calls[0], color:'#00e676'},
-    {label:'Call Wall 2', val: gex.top3Calls && gex.top3Calls[1], color:'rgba(0,230,118,0.6)'},
-    {label:'Call Wall 3', val: gex.top3Calls && gex.top3Calls[2], color:'rgba(0,230,118,0.4)'},
-    {label:'── Spot ──', val: spot, color:'#00d4ff', bold:true},
-    {label:'── Zero Gamma ──', val: gex.zeroGamma, color:'#ffd600', bold:true},
-    {label:'Put Wall 1', val: gex.top3Puts && gex.top3Puts[0], color:'#ff3d60'},
-    {label:'Put Wall 2', val: gex.top3Puts && gex.top3Puts[1], color:'rgba(255,61,96,0.6)'},
-    {label:'Put Wall 3', val: gex.top3Puts && gex.top3Puts[2], color:'rgba(255,61,96,0.4)'},
-  ];
-  const ll = document.getElementById('levels-list');
-  ll.innerHTML = levels.map(l => `
-    <div class="level-row" style="${l.bold ? 'border-left:3px solid '+l.color+';padding-left:8px' : ''}">
-      <span class="level-label" style="color:${l.color}">${l.label}</span>
-      <span class="level-val" style="color:${l.color}">${l.val ? Number(l.val).toFixed(1) : '—'}</span>
-    </div>`).join('');
+        if (msg.type === 'gex_update' || msg.data) {
+          const payload = msg.data || msg;
+          // Store by symbol
+          if (payload.symbol) {
+            latestData[payload.symbol] = payload;
+          } else {
+            // If backend sends all symbols at once
+            Object.assign(latestData, payload);
+          }
+          renderSymbolData(currentSymbol);
+          updateTicker();
+        }
 
-  // Interpretation
-  document.getElementById('interpretation').innerHTML = `
-    <div class="interp-box" style="background:${isPos ? 'rgba(0,230,118,0.08)' : 'rgba(255,61,96,0.08)'};color:${isPos ? '#00e676' : '#ff3d60'}">
-      ${isPos ? '✅ Dealers amortiguan movimientos. Favorece rangos y mean-reversion.' : '⚠️ Dealers amplifican movimientos. Favorece momentum y tendencias.'}
-    </div>
-    <div class="interp">${spot > gex.zeroGamma ? '<span style="color:#00e676">▲</span> Spot sobre Zero Gamma → régimen estable' : '<span style="color:#ff3d60">▼</span> Spot bajo Zero Gamma → mayor volatilidad'}</div>`;
+        if (msg.users !== undefined) {
+          document.getElementById('user-count').textContent = msg.users + ' usuario' + (msg.users !== 1 ? 's' : '');
+        }
 
-  // System status
-  document.getElementById('sys-status').innerHTML = `
-    <div class="level-row"><span style="color:#6a85b0;font-size:12px">Fuente</span><span style="font-size:12px;color:${d.usingRealData ? '#00e676' : '#ffd600'}">${d.usingRealData ? 'ThinkOrSwim' : 'Simulado'}</span></div>
-    <div class="level-row"><span style="color:#6a85b0;font-size:12px">Usuarios</span><span style="font-size:12px;color:#00d4ff">${d.connectedUsers || 0}</span></div>
-    <div class="level-row"><span style="color:#6a85b0;font-size:12px">Mercado</span><span style="font-size:12px;color:${d.isMarketOpen ? '#00e676' : '#ff3d60'}">${d.isMarketOpen ? 'Abierto' : 'Cerrado'}</span></div>`;
+        if (msg.schwab_status) {
+          document.getElementById('st-schwab').textContent = msg.schwab_status === 'ok' ? 'ACTIVO' : 'ERROR';
+          document.getElementById('st-schwab').className = msg.schwab_status === 'ok' ? 'status-ok' : 'status-err';
+        }
 
-  // Chart
-  renderChart(gex, spot);
-}
+      } catch (e) { console.error('Parse error:', e); }
+    };
 
-function renderChart(gex, spot) {
-  if (!gex.profile || !gex.profile.length) return;
-  const filtered = gex.profile
-    .filter(s => Math.abs(s.strike - spot) / spot < 0.08)
-    .sort((a,b) => a.strike - b.strike);
+    ws.onerror = () => { setStatus('error'); };
+    ws.onclose = () => {
+      setStatus('disconnected');
+      document.getElementById('st-ws').textContent = 'CERRADO';
+      document.getElementById('st-ws').className = 'status-err';
+      setTimeout(connectWebSocket, 5000);
+    };
+  }
 
-  const labels = filtered.map(s => s.strike.toFixed(0));
-  const calls = filtered.map(s => s.callGEX || 0);
-  const puts = filtered.map(s => -(s.putGEX || 0));
-  const bgCalls = filtered.map(s => s.isMajorPositive ? '#00d4ff' : '#00e676');
-  const bgPuts = filtered.map(s => s.isMajorNegative ? '#ffd600' : '#ff3d60');
+  function setStatus(state) {
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    dot.className = '';
+    if (state === 'connected') {
+      dot.classList.add('connected');
+      text.textContent = 'CONECTADO';
+    } else if (state === 'error') {
+      dot.classList.add('error');
+      text.textContent = 'ERROR';
+    } else {
+      text.textContent = 'RECONECTANDO...';
+    }
+  }
 
-  const ctx = document.getElementById('gexChart').getContext('2d');
-  if (chart) { chart.destroy(); }
+  /* ════════════════════
+     RENDER DATA
+  ════════════════════ */
+  function renderSymbolData(symbol) {
+    const d = latestData[symbol];
+    if (!d) return;
 
-  const spotIdx = filtered.reduce((best, s, i) => Math.abs(s.strike - spot) < Math.abs(filtered[best].strike - spot) ? i : best, 0);
-  const zgIdx = filtered.reduce((best, s, i) => Math.abs(s.strike - gex.zeroGamma) < Math.abs(filtered[best].strike - gex.zeroGamma) ? i : best, 0);
+    const fmt = v => v != null ? Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '—';
+    const fmtB = v => {
+      if (v == null) return '—';
+      const abs = Math.abs(v);
+      if (abs >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+      if (abs >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+      return v.toFixed(2);
+    };
 
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Call GEX', data: calls, backgroundColor: bgCalls, borderRadius: 2 },
-        { label: 'Put GEX', data: puts, backgroundColor: bgPuts, borderRadius: 2 }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => ctx.dataset.label + ': ' + Math.abs(ctx.raw).toFixed(3) + 'B'
+    setText('val-zero', fmt(d.zero_gamma ?? d.zeroGamma));
+    setText('val-call', fmt(d.call_wall  ?? d.callWall));
+    setText('val-put',  fmt(d.put_wall   ?? d.putWall));
+    setText('val-net',  fmtB(d.net_gex   ?? d.netGex));
+    setText('val-vol',  fmtB(d.gex_volume ?? d.gexVolume));
+    setText('val-max',  fmt(d.max_gamma  ?? d.maxGamma));
+
+    // Side panel
+    setText('niv-call', fmt(d.call_wall ?? d.callWall));
+    setText('niv-put',  fmt(d.put_wall  ?? d.putWall));
+    setText('niv-zero', fmt(d.zero_gamma ?? d.zeroGamma));
+    setText('niv-max',  fmt(d.max_gamma ?? d.maxGamma));
+
+    // Net GEX subtitle
+    const net = d.net_gex ?? d.netGex;
+    if (net != null) {
+      document.getElementById('sub-net').textContent = net > 0 ? 'Mercado positivo' : 'Mercado negativo';
+      document.getElementById('val-net').style.color = net > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+    }
+
+    // Interpretation
+    buildInterpretation(d);
+
+    // Schwab status
+    if (d.schwab_connected !== undefined) {
+      document.getElementById('st-schwab').textContent = d.schwab_connected ? 'ACTIVO' : 'OFFLINE';
+      document.getElementById('st-schwab').className   = d.schwab_connected ? 'status-ok' : 'status-err';
+    }
+
+    // Timestamp
+    const now = new Date();
+    document.getElementById('st-update').textContent = now.toLocaleTimeString('es-CO');
+
+    // Remove loading animation
+    document.querySelectorAll('.loading').forEach(el => el.classList.remove('loading'));
+
+    // Update chart
+    if (d.strikes && d.call_gex_by_strike && d.put_gex_by_strike) {
+      updateChart(d);
+    }
+  }
+
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function buildInterpretation(d) {
+    const net = d.net_gex ?? d.netGex;
+    const zero = d.zero_gamma ?? d.zeroGamma;
+    const call = d.call_wall ?? d.callWall;
+    const put  = d.put_wall  ?? d.putWall;
+    let text = '';
+
+    if (net != null) {
+      text += net > 0
+        ? '📈 GEX positivo: dealers compran bajas, mercado tiende a ser estable. '
+        : '📉 GEX negativo: dealers venden bajas, mercado puede ser volátil. ';
+    }
+    if (zero && call && put) {
+      text += `Rango clave: ${Number(put).toFixed(0)} — ${Number(call).toFixed(0)}. `;
+      text += Pivote en ${Number(zero).toFixed(0)}.;
+    }
+
+    document.getElementById('interpretacion').textContent = text || 'Analizando flujo de opciones...';
+  }
+
+  function updateTicker() {
+    const parts = Object.entries(latestData).map(([sym, d]) => {
+      const zg = d.zero_gamma ?? d.zeroGamma;
+      return ${sym}: ZG ${zg ? Number(zg).toFixed(0) : '—'};
+    });
+    if (parts.length) {
+      document.getElementById('ticker-text').textContent =
+        parts.join('  |  ') + '  ‖  GEXBOT PLATFORM  ‖  REAL-TIME OPTIONS GEX  ‖  ';
+    }
+  }
+
+  /* ════════════════════
+     CHART
+  ════════════════════ */
+  function initChart() {
+    const ctx = document.getElementById('gexChart').getContext('2d');
+    gexChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Call GEX',
+            data: [],
+            backgroundColor: 'rgba(0,255,136,0.5)',
+            borderColor: '#00ff88',
+            borderWidth: 1,
+          },
+          {
+            label: 'Put GEX',
+            data: [],
+            backgroundColor: 'rgba(255,68,102,0.5)',
+            borderColor: '#ff4466',
+            borderWidth: 1,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        animation: { duration: 300 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0d1422',
+            borderColor: '#1e2d45',
+            borderWidth: 1,
+            titleColor: '#c8d8e8',
+            bodyColor: '#5a7a9a',
+            titleFont: { family: 'Share Tech Mono', size: 11 },
+            bodyFont: { family: 'Share Tech Mono', size: 10 },
           }
         },
-        annotation: {}
-      },
-      scales: {
-        x: {
-          stacked: false,
-          ticks: { color: '#6a85b0', font: { size: 10 }, maxTicksLimit: 8 },
-          grid: { color: '#1a2844' }
-        },
-        y: {
-          ticks: { color: '#6a85b0', font: { size: 10 }, callback: v => v.toFixed(1) + 'B' },
-          grid: { color: '#1a2844' }
+        scales: {
+          x: {
+            ticks: { color: '#5a7a9a', font: { family: 'Share Tech Mono', size: 9 }, maxRotation: 0 },
+            grid: { color: 'rgba(30,45,69,0.4)' }
+          },
+          y: {
+            ticks: { color: '#5a7a9a', font: { family: 'Share Tech Mono', size: 9 } },
+            grid: { color: 'rgba(30,45,69,0.4)' }
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
 
-connect();
+  function updateChart(d) {
+    if (!gexChart) return;
+    const strikes   = d.strikes || [];
+    const callData  = d.call_gex_by_strike || d.callGexByStrike || [];
+    const putData   = d.put_gex_by_strike  || d.putGexByStrike  || [];
+
+    gexChart.data.labels         = strikes.map(s => s.toString());
+    gexChart.data.datasets[0].data = callData;
+    gexChart.data.datasets[1].data = putData;
+
+    // Annotation lines for zero gamma / call wall
+    gexChart.update();
+  }
 </script>
+
 </body>
 </html>
