@@ -446,7 +446,7 @@ canvas#gexChart { max-height: 300px; }
       <div class="login-label">ACCESO RESTRINGIDO</div>
       <input type="password" id="pwd-input" class="pwd-input" placeholder="Contraseña" autocomplete="current-password" />
       <div id="pwd-error" class="pwd-error"></div>
-      <button class="pwd-btn" onclick="checkPassword()">INGRESAR →</button>
+      <button class="pwd-btn" id="pwd-btn">INGRESAR →</button>
     </div>
   </div>
 </div>
@@ -625,6 +625,9 @@ canvas#gexChart { max-height: 300px; }
   document.getElementById('pwd-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') checkPassword();
   });
+
+  // Button click
+  document.getElementById('pwd-btn').addEventListener('click', checkPassword);
 
   // Sign out
   document.getElementById('btn-signout').addEventListener('click', () => {
